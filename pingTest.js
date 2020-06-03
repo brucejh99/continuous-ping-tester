@@ -17,37 +17,39 @@ const session = ping.createSession(options);
 keypress(process.stdin);
 
 const pinghost = function() {
+    session.pingHost(HOST, function(err, target, reqTime, resTime) {
+        var time = resTime - reqTime;
+        pingSum += time;
+        if (time < minTime) minTime = time;
+        if (time > maxTime) maxTime = time;
+        if (err) {
+            serverErrors++;
+            errorTimes.push(reqTime);
+            console.log(`Error received at ${resTime} from request at ${reqTime}.`);
+        } else {
+            console.log(`Pinged ${target} in ${time}ms.`);
+        }
+        tests++;
+    });
+}
+
+setInterval(function() {
     try {
-        session.pingHost(HOST, function(err, target, reqTime, resTime) {
-            var time = resTime - reqTime;
-            pingSum += time;
-            if (time < minTime) minTime = time;
-            if (time > maxTime) maxTime = time;
-            if (err) {
-                serverErrors++;
-                errorTimes.push(reqTime);
-                console.log(`Error received at ${resTime} from request at ${reqTime}.`);
-            } else {
-                console.log(`Pinged ${target} in ${time}ms.`);
-            }
-            tests++;
-        });
+        pinghost();
     } catch(err) {
         const errorTime = Date.now();
         console.log(`Error pinging ${HOST} at ${errorTime}`);
         sockerErrors++;
         errorTimes.push(errorTime);
     }
-}
-
-setInterval(pinghost, 1000);
+}, 1000);
 
 process.stdin.on('keypress', () => {
     const endTime = Date.now();
     console.log(`Ping tested from for ${timeDiff(new Date(startTime), new Date(endTime))}`)
     console.log(`Max ping: ${maxTime}ms.`);
     console.log(`Min ping: ${minTime}ms.`);
-    console.log(`Average ping: ${pingSum / tests}ms.`);
+    console.log(`Average ping: ${(Math.round(pingSum / tests) * 100) / 100}ms.`);
     console.log(`${socketErrors + serverErrors}/${tests} failed.`);
     console.log(`Socket errors (might be because of your computer or internet connection): ${socketErrors}.`);
     console.log(`Server errors (might be out of your control): ${serverErrors}.`);
