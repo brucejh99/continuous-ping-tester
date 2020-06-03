@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 const keypress = require('keypress');
 const ping = require('net-ping');
+const { timeDiff } = require('./utils/time');
+
 const HOST = '104.160.131.3';
 const TIMEOUT = 500;
 
@@ -9,6 +11,7 @@ const options = {
 };
 var maxTime = 0, minTime = TIMEOUT, serverErrors = 0, socketErrors = 0; tests = 0;
 var errorTimes = [];
+const startTime = Date.now();
 
 const session = ping.createSession(options);
 keypress(process.stdin);
@@ -39,6 +42,8 @@ const pinghost = function() {
 setInterval(pinghost, 1000);
 
 process.stdin.on('keypress', () => {
+    const endTime = Date.now();
+    console.log(`Ping tested from for ${timeDiff(new Date(startTime), new Date(endTime))}`)
     console.log(`Max ping: ${maxTime}ms.`);
     console.log(`Min ping: ${minTime}ms.`);
     console.log(`${socketErrors + serverErrors}/${tests} failed.`);
