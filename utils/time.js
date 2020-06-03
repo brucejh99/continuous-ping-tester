@@ -1,3 +1,5 @@
+const twoDigitNumber = num => num < 10 ? `0${num}` : num;
+
 const timeDiff = (date1, date2) => {
     var diff = date2.getTime() - date1.getTime();
 
@@ -9,7 +11,7 @@ const timeDiff = (date1, date2) => {
     var ss = Math.floor(msec / 1000);
     msec -= ss * 1000;
 
-    return `${hh}h:${mm}m:${ss}s`;
+    return `${twoDigitNum(hh)}h:${twoDigitNum(mm)}m:${twoDigitNum(ss)}s`;
 }
 
 module.exports = { timeDiff };
