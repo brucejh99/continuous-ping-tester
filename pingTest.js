@@ -14,6 +14,13 @@ var errorTimes = [];
 const startTime = Date.now();
 
 const session = ping.createSession(options);
+session.on('error', function() {
+    const errorTime = Date.now();
+    console.log(`Error pinging ${HOST} at ${new Date(errorTime).toUTCString()}`);
+    socketErrors++;
+    errorTimes.push(errorTime);
+});
+
 keypress(process.stdin);
 
 const pinghost = function() {
@@ -25,31 +32,22 @@ const pinghost = function() {
         if (err) {
             serverErrors++;
             errorTimes.push(reqTime);
-            console.log(`Error received at ${resTime} from request at ${reqTime}.`);
+            console.log(`Error received at ${new Date(resTime).toUTCString()} from request at ${new Date(reqTime).toUTCString()}`);
         } else {
-            console.log(`Pinged ${target} in ${time}ms.`);
+            console.log(`Pinged ${target} in ${time}ms`);
         }
         tests++;
     });
 }
 
-setInterval(function() {
-    try {
-        pinghost();
-    } catch(err) {
-        const errorTime = Date.now();
-        console.log(`Error pinging ${HOST} at ${errorTime}`);
-        sockerErrors++;
-        errorTimes.push(errorTime);
-    }
-}, 1000);
+setInterval(pinghost, 1000);
 
 process.stdin.on('keypress', () => {
     const endTime = Date.now();
     console.log(`Ping tested from for ${timeDiff(new Date(startTime), new Date(endTime))}`)
     console.log(`Max ping: ${maxTime}ms.`);
     console.log(`Min ping: ${minTime}ms.`);
-    console.log(`Average ping: ${(Math.round(pingSum / tests) * 100) / 100}ms.`);
+    console.log(`Average ping: ${Math.round((pingSum * 100) / tests) / 100}ms.`);
     console.log(`${socketErrors + serverErrors}/${tests} failed.`);
     console.log(`Socket errors (might be because of your computer or internet connection): ${socketErrors}.`);
     console.log(`Server errors (might be out of your control): ${serverErrors}.`);
